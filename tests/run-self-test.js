@@ -6,6 +6,7 @@ const { spawnSync } = require("child_process");
 
 const ROOT = path.resolve(__dirname, "..");
 const TMP_ROOT = path.join(ROOT, "tmp");
+const CACHE_EMAIL_ROOT = path.join(ROOT, "cache", "email");
 
 function ensureDir(dirPath) {
   fs.mkdirSync(dirPath, { recursive: true });
@@ -39,6 +40,9 @@ function assert(condition, message) {
 }
 
 function main() {
+  fs.rmSync(TMP_ROOT, { recursive: true, force: true });
+  fs.rmSync(CACHE_EMAIL_ROOT, { recursive: true, force: true });
+
   const base = {
     ui_type: "email",
     emails: [

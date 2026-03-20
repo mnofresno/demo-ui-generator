@@ -8,6 +8,7 @@ const ROOT = path.resolve(__dirname, "..");
 const TEMPLATE_ROOT = path.join(ROOT, "templates", "email-ui-base");
 const CACHE_ROOT = path.join(ROOT, "cache");
 const DEFAULT_OUTPUT_ROOT = path.join(ROOT, "generated-project");
+const MANIFEST_FILE = "demo-ui-generator.manifest.json";
 
 function stableSort(value) {
   if (Array.isArray(value)) {
@@ -41,7 +42,9 @@ function normalizeInput(input) {
     emails: Array.isArray(input.emails) ? input.emails : [],
     features: stableSort(input.features && typeof input.features === "object" ? input.features : {}),
     style: String(input.style || "minimal").trim().toLowerCase(),
-    otp: input.otp == null ? "" : String(input.otp)
+    otp: input.otp == null ? "" : String(input.otp),
+    source_app: input.source_app == null ? "" : String(input.source_app).trim(),
+    demo_slug: input.demo_slug == null ? "" : String(input.demo_slug).trim()
   };
 }
 
@@ -52,6 +55,15 @@ function computeCacheKey(normalizedInput) {
     style: normalizedInput.style
   };
   return crypto.createHash("sha256").update(stableStringify(structuralPayload)).digest("hex").slice(0, 16);
+}
+
+function computeUiKey(normalizedInput) {
+  const structuralPayload = {
+    ui_type: normalizedInput.ui_type,
+    features: normalizedInput.features,
+    style: normalizedInput.style
+  };
+  return crypto.createHash("sha256").update(stableStringify(structuralPayload)).digest("hex").slice(0, 24);
 }
 
 function ensureDir(dirPath) {
@@ -98,6 +110,7 @@ function main() {
   const input = JSON.parse(fs.readFileSync(path.resolve(inputPath), "utf8"));
   const normalized = normalizeInput(input);
   const cacheKey = computeCacheKey(normalized);
+  const uiKey = computeUiKey(normalized);
   const cacheDir = path.join(CACHE_ROOT, normalized.ui_type, cacheKey);
   const cacheExists = fs.existsSync(cacheDir);
   const sourceDir = cacheExists ? cacheDir : TEMPLATE_ROOT;
@@ -125,13 +138,25 @@ function main() {
     otp: normalized.otp
   });
 
+  writeJson(path.join(outputPath, MANIFEST_FILE), {
+    generated_by: "demo-ui-generator",
+    ui_type: normalized.ui_type,
+    ui_key: uiKey,
+    cache_key: cacheKey,
+    source_app: normalized.source_app,
+    demo_slug: normalized.demo_slug,
+    generated_at: new Date().toISOString()
+  });
+
   const result = {
     explanation: [
       "Normalizes input and hashes structural fields only.",
+      "Writes a demo-ui-generator manifest so future runs can identify matching standalone demo repos.",
       "Reuses cached UI structure when ui_type, features, and style match.",
       "Injects runtime data into generated-project/data.json.",
-      "Returns a ready-to-run local project with window.demoAPI."
+      "Returns a ready-to-run standalone demo project with window.demoAPI."
     ],
+    ui_key: uiKey,
     cache_key: cacheKey,
     cache_status: cacheExists ? "hit" : "miss",
     cache_dir: cacheDir,
