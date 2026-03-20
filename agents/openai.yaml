@@ -1,0 +1,7 @@
+interface:
+  display_name: "Demo UI Generator"
+  short_description: "Generate cached email demo UIs locally"
+  default_prompt: "Use $demo-ui-generator to create or reuse a cached email-like demo UI from JSON input."
+
+policy:
+  allow_implicit_invocation: true

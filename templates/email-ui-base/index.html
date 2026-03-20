@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Demo Mail</title>
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="sidebar">
+        <div>
+          <p class="eyebrow">Demo UI</p>
+          <h1>Inbox</h1>
+        </div>
+        <div class="sidebar-card">
+          <span>OTP</span>
+          <strong id="otp-value">000000</strong>
+        </div>
+        <button id="reload-button" type="button">Reload data</button>
+      </aside>
+
+      <main class="content">
+        <header class="toolbar">
+          <div>
+            <p class="eyebrow">Email-like preview</p>
+            <h2 id="toolbar-title">0 messages</h2>
+          </div>
+        </header>
+
+        <section class="panel">
+          <ul id="email-list" class="email-list"></ul>
+          <div id="empty-state" class="empty-state" hidden>No emails loaded.</div>
+        </section>
+      </main>
+    </div>
+
+    <script src="./app.js"></script>
+  </body>
+  </html>

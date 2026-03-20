@@ -1,0 +1,30 @@
+{
+  "name": "demo-ui-generator",
+  "entry": "scripts/generate.js",
+  "input_schema": {
+    "type": "object",
+    "required": [
+      "ui_type",
+      "emails",
+      "features",
+      "style"
+    ],
+    "properties": {
+      "ui_type": {
+        "type": "string",
+        "enum": [
+          "email"
+        ]
+      },
+      "emails": {
+        "type": "array"
+      },
+      "features": {
+        "type": "object"
+      },
+      "style": {
+        "type": "string"
+      }
+    }
+  }
+}

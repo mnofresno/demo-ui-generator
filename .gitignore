@@ -1,0 +1,6 @@
+generated-project/
+tmp/
+node_modules/
+cache/email/*
+!cache/email/.gitkeep
+!cache/.gitkeep

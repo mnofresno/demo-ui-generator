@@ -1,0 +1,11 @@
+{
+  "name": "demo-ui-generator",
+  "version": "1.0.0",
+  "private": false,
+  "description": "Reusable skill that generates cached email-like demo UIs from JSON input.",
+  "type": "commonjs",
+  "scripts": {
+    "generate": "node scripts/generate.js",
+    "test": "node tests/run-self-test.js"
+  }
+}

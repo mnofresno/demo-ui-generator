@@ -1,0 +1,17 @@
+{
+  "ui_type": "email",
+  "emails": [
+    {
+      "from": "Acme Login",
+      "subject": "Your sign-in code",
+      "preview": "Use 482913 to finish logging in.",
+      "date": "2026-03-20"
+    }
+  ],
+  "features": {
+    "otp": true,
+    "search": false,
+    "threading": false
+  },
+  "style": "minimal"
+}
