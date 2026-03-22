@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gmail</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Google Sans', Roboto, RobotoDraft, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background: #f6f8fc;
+            color: #202124;
+            min-height: 100vh;
+        }
+
+        .app-container {
+            display: flex;
+            height: 100vh;
+            max-width: 1600px;
+            margin: 0 auto;
+            background: white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+        }
+
+        /* Sidebar - Gmail style */
+        .sidebar {
+            width: 256px;
+            background: white;
+            border-right: 1px solid #e0e0e0;
+            padding: 16px 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .compose-btn {
+            margin: 0 16px 24px;
+            padding: 12px 24px;
+            background: #c2e7ff;
+            border: none;
+            border-radius: 16px;
+            font-weight: 500;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: box-shadow 0.2s;
+        }
+
+        .compose-btn:hover {
+            background: #b3d9f2;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .nav-items {
+            flex: 1;
+        }
+
+        .nav-item {
+            padding: 8px 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #202124;
+            text-decoration: none;
+            transition: background 0.1s;
+        }
+
+        .nav-item:hover {
+            background: #f1f3f4;
+        }
+
+        .nav-item.active {
+            background: #d3e3fd;
+            color: #001d35;
+            font-weight: 500;
+            border-radius: 0 20px 20px 0;
+        }
+
+        .nav-item .icon {
+            width: 20px;
+            height: 20px;
+            opacity: 0.71;
+        }
+
+        .email-count {
+            margin-left: auto;
+            background: #e8f0fe;
+            color: #1a73e8;
+            font-size: 12px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            min-width: 20px;
+            text-align: center;
+        }
+
+        /* Main content */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: white;
+        }
+
+        .toolbar {
+            padding: 16px 24px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: white;
+        }
+
+        .search-bar {
+            flex: 1;
+            max-width: 720px;
+            background: #f1f3f4;
+            border-radius: 8px;
+            padding: 8px 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: background 0.2s;
+        }
+
+        .search-bar:focus-within {
+            background: white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .search-bar input {
+            flex: 1;
+            border: none;
+            background: transparent;
+            font-size: 14px;
+            outline: none;
+            color: #202124;
+        }
+
+        .toolbar-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .toolbar-btn {
+            padding: 8px 16px;
+            background: #f1f3f4;
+            border: 1px solid #dadce0;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            color: #5f6368;
+            transition: background 0.2s;
+        }
+
+        .toolbar-btn:hover {
+            background: #e8eaed;
+        }
+
+        .email-list {
+            flex: 1;
+            overflow-y: auto;
+            background: white;
+        }
+
+        .email-item {
+            padding: 12px 24px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            cursor: pointer;
+            transition: background 0.1s;
+            position: relative;
+        }
+
+        .email-item:hover {
+            background: #f5f7f7;
+            box-shadow: inset 1px 0 0 #dadce0, inset -1px 0 0 #dadce0;
+        }
+
+        .email-item.selected {
+            background: #e8f0fe;
+        }
+
+        .email-item.unread {
+            font-weight: 500;
+        }
+
+        .email-checkbox {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .email-star {
+            width: 20px;
+            height: 20px;
+            color: #5f6368;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .email-star.starred {
+            color: #fbbc04;
+        }
+
+        .email-sender {
+            width: 180px;
+            font-size: 14px;
+            color: #202124;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            flex-shrink: 0;
+        }
+
+        .email-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .email-subject {
+            font-size: 14px;
+            color: #202124;
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .email-preview {
+            font-size: 13px;
+            color: #5f6368;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .email-date {
+            font-size: 12px;
+            color: #5f6368;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .email-label {
+            font-size: 11px;
+            padding: 2px 6px;
+            border-radius: 10px;
+            margin-left: 8px;
+            background: #e8f0fe;
+            color: #1a73e8;
+            font-weight: 500;
+        }
+
+        /* Email detail view */
+        .email-detail {
+            padding: 24px;
+            background: white;
+            border-left: 1px solid #e0e0e0;
+            width: 600px;
+            overflow-y: auto;
+            display: none;
+        }
+
+        .email-detail.visible {
+            display: block;
+        }
+
+        .email-detail-header {
+            padding-bottom: 16px;
+            border-bottom: 1px solid #e0e0e0;
+            margin-bottom: 24px;
+        }
+
+        .email-detail-subject {
+            font-size: 22px;
+            font-weight: 400;
+            color: #202124;
+            margin-bottom: 16px;
+            line-height: 1.4;
+        }
+
+        .email-detail-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+            gap: 16px;
+        }
+
+        .email-detail-from {
+            font-weight: 500;
+            color: #202124;
+            margin-bottom: 4px;
+        }
+
+        .email-detail-to {
+            color: #5f6368;
+            font-size: 13px;
+        }
+
+        .email-detail-date {
+            color: #5f6368;
+            font-size: 13px;
+            white-space: nowrap;
+        }
+
+        .email-detail-body {
+            line-height: 1.6;
+            color: #202124;
+            font-size: 14px;
+        }
+
+        .email-detail-body h1,
+        .email-detail-body h2,
+        .email-detail-body h3 {
+            margin: 24px 0 16px 0;
+            color: #202124;
+        }
+
+        .email-detail-body p {
+            margin: 16px 0;
+        }
+
+        .email-detail-body ul,
+        .email-detail-body ol {
+            margin: 16px 0;
+            padding-left: 24px;
+        }
+
+        .email-detail-body li {
+            margin: 8px 0;
+        }
+
+        .email-detail-body .button {
+            display: inline-block;
+            background: #1a73e8;
+            color: white;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: 500;
+            margin: 16px 0;
+        }
+
+        .email-detail-body .code {
+            background: #f8f9fa;
+            border: 1px solid #dadce0;
+            padding: 16px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 24px;
+            text-align: center;
+            letter-spacing: 4px;
+            margin: 24px 0;
+        }
+
+        .email-detail-body .info-box {
+            background: #f8f9fa;
+            padding: 16px;
+            border-radius: 8px;
+            border-left: 4px solid #1a73e8;
+            margin: 16px 0;
+        }
+
+        /* Empty state */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            padding: 48px;
+            color: #5f6368;
+            text-align: center;
+        }
+
+        .empty-state h3 {
+            margin: 16px 0 8px 0;
+            color: #202124;
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .email-detail {
+                width: 400px;
+            }
+        }
+
+        @media (max-width: 900px) {
+            .app-container {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                height: auto;
+                border-right: none;
+                border-bottom: 1px solid #e0e0e0;
+            }
+            
+            .email-detail {
+                width: 100%;
+                border-left: none;
+                border-top: 1px solid #e0e0e0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <button class="compose-btn">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 14H4V8l8 5 8-5v10zm-8-7L4 6h16l-8 5z"/>
+                </svg>
+                Compose
+            </button>
+            
+            <div class="nav-items">
+                <a href="#" class="nav-item active">
+                    <svg class="icon" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 14H4V8l8 5 8-5v10zm-8-7L4 6h16l-8 5z"/>
+                    </svg>
+                    Inbox
+                    <span class="email-count" id="inbox-count">3</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <svg class="icon" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M20 8l-8 5-8-5v10h16zm0-2H4l8 4.99z"/>
+                    </svg>
+                    Starred
+                </a>
+                <a href="#" class="nav-item">
+                    <svg class="icon" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-5 14H4v-2h11v2zm0-4H4v-2h11v2zm0-4H4V8h11v2zm5 8h-4v-2h4v2zm0-4h-4v-2h4v2z"/>
+                    </svg>
+                    Sent
+                </a>
+                <a href="#" class="nav-item">
+                    <svg class="icon" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14z"/>
+                    </svg>
+                    Drafts
+                </a>
+            </div>
+        </div>
+        
+        <!-- Main content -->
+        <div class="main-content">
+            <div class="toolbar">
+                <div class="search-bar">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="#5f6368">
+                        <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+                    </svg>
+                    <input type="text" placeholder="Search in emails" id="search-input">
+                </div>
+                
+                <div class="toolbar-actions">
+                    <button class="toolbar-btn" id="refresh-btn">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 4px;">
+                            <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
+                        </svg>
+                        Refresh
+                    </button>
+                    <button class="toolbar-btn" id="load-data-btn">Load Sample Data</button>
+                </div>
+            </div>
+            
+            <div class="email-list" id="email-list">
+                <!-- Emails will be loaded here -->
+            </div>
+        </div>
+        
+        <!-- Email detail view -->
+        <div class="email-detail" id="email-detail">
+            <div class="empty-state">
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="#dadce0">
+                    <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 14H4V8l8 5 8-5v10zm-8-7L4 6h16l-8 5z"/>
+                </svg>
+                <h3>Select an email to view</h3>
+                <p>Click on any email in the list to see its full content</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sample email data - completely generic
+        const sampleEmails = [
+            {
+                id: 1,
+                from: "Security Team <security@example.com>",
+                to: "user@example.com",
+                subject: "Your verification code: 749215",
+                date: "Today, 10:32 AM",
+                read: true,
+                starred: false,
+                labels: ["Security"],
+                body: `
+                    <h2>Verify Your Account</h2>
+                    <p>Hello,</p>
+                    <p>We received a request to sign in to your account. To complete the verification process, please use the following code:</p>
+                    
+                    <div class="code">749215</div>
+                    
+                    <p>This code will expire in 10 minutes. If you didn't request this code, you can safely ignore this email.</p>
+                    
+                    <p>For security reasons, please don't share this code with anyone.</p>
+                    
+                    <div class="info-box">
+                        <strong>Need help?</strong>
+                        <p>If you're having trouble with your account, please contact our support team at support@example.com</p>
+                    </div>
+                    
+                    <p>Best regards,<br>Security Team</p>
+                `
+            },
+            {
+                id: 2,
+                from: "Project Updates <updates@project.com>",
+                to: "team@company.com",
+                subject: "Weekly Project Status Report",
+                date: "Today, 9:15 AM",
+                read: true,
+                starred: true,
+                labels: ["Work", "Report"],
+                body: `
+                    <h2>Weekly Project Status</h2>
+                    <p>Hello Team,</p>
+                    
+                    <p>Here's the weekly status update for our current projects:</p>
+                    
+                    <h3>Project Alpha</h3>
+                    <ul>
+                        <li><strong>Status:</strong> On track</li>
+                        <li><strong>Progress:</strong> 75% complete</li>
+                        <li><strong>Next milestone:</strong> Beta testing (due: Next Friday)</li>
+                    </ul>
+                    
+                    <h3>Project Beta</h3>
+                    <ul>
+                        <li><strong>Status:</strong> Slightly behind schedule</li>
+                        <li><strong>Progress:</strong> 60% complete</li>
+                        <li><strong>Blockers:</strong> API integration delayed by 2 days</li>
+                    </ul>
+                    
+                    <h3>Key Achievements This Week</h3>
+                    <ol>
+                        <li>Completed user authentication system</li>
+                        <li>Implemented dashboard analytics</li>
+                        <li>Fixed 15 critical bugs reported by QA</li>
+                    </ol>
+                    
+                    <p>Our next team meeting is scheduled for Monday at 10:00 AM. Please come prepared with your updates.</p>
+                    
+                    <a href="#" class="button">View Detailed Report</a>
+                    
+                    <p>Regards,<br>Project Management Team</p>
+                `
+            },
+            {
+                id: 3,
+                from: "Newsletter <news@service.com>",
+                to: "subscriber@email.com",
+                subject: "Your weekly digest is here!",
+                date: "Yesterday, 3:45 PM",
+                read: false,
+                starred: false,
+                labels: ["Newsletter"],
+                body: `
+                    <h2>This Week's Top Stories</h2>
+                    
+                    <div class="info-box">
+                        <h3>Featured Article: The Future of Web Development</h3>
+                        <p>Explore the latest trends and technologies shaping the future of web development in 2025.</p>
+                        <a href="#" class="button">Read Article</a>
+                    </div>
+                    
+                    <h3>Latest Updates</h3>
+                    <ul>
+                        <li><strong>New Framework Release:</strong> Version 3.0 of the popular framework is now available with improved performance and new features.</li>
+                        <li><strong>Security Update:</strong> Important security patches released for several major libraries.</li>
+                        <li><strong>Community Event:</strong> Join our virtual conference next month featuring industry experts.</li>
+                    </ul>
+                    
+                    <h3>Tips & Tricks</h3>
+                    <p>This week's productivity tip: Use keyboard shortcuts to speed up your development workflow. Did you know you can...</p>
+                    <ul>
+                        <li>Quickly format code with Ctrl+Shift+F</li>
+                        <li>Search across files with Ctrl+Shift+F</li>
+                        <li>Navigate to definition with F12</li>
+                    </ul>
+                    
+                    <p>Stay tuned for more updates next week!</p>
+                    
+                    <p>Best,<br>The Newsletter Team</p>
+                    
+                    <p style="font-size: 12px; color: #5f6368; margin-top: 24px;">
+                        <a href="#" style="color: #1a73e8;">Unsubscribe</a> | 
+                        <a href="#" style="color: #1a73e8;">Update Preferences</a> | 
+                        <a href="#" style="color: #1a73e8;">View in Browser</a>
+                    </p>
+                `
+            }
+        ];
+
+        // Current emails state
+        let emails = [...sampleEmails];
+        let selectedEmailId = null;
+
+        // DOM elements
+        const emailListEl = document.getElementById('email-list');
+        const emailDetailEl = document.getElementById('email-detail');
+        const inboxCountEl = document.getElementById('inbox-count');
+        const searchInput = document.getElementById('search-input');
+        const refreshBtn = document.getElementById('refresh-btn');
+        const loadDataBtn = document.getElementById('load-data-btn');
+
+        // Format date relative to now
+        function formatDate(dateStr) {
+            return dateStr; // Keep as-is for demo
+        }
+
+        // Render email list
+        function renderEmailList(filteredEmails = emails) {
+            emailListEl.innerHTML = '';
+            
+            if (filteredEmails.length === 0) {
+                emailListEl.innerHTML = `
+                    <div class="empty-state">
+                        <svg width="64" height="64" viewBox="0 0 24 24" fill="#dadce0">
+                            <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 14H4V8l8 5 8-5v10zm-8-7L4 6h16l-8 5z"/>
+                        </svg>
+                        <h3>No emails found</h3>
+                        <p>Try adjusting your search or load sample data</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            filteredEmails.forEach(email => {
+                const emailEl = document.createElement('div');
+                emailEl.className = `email-item ${email.read ? 'read' : 'unread'} ${selectedEmailId === email.id ? 'selected' : ''}`;
+                emailEl.dataset.id = email.id;
+                
+                // Create preview text from body
+                const previewText = email.body.replace(/<[^>]*>/g, ' ').substring(0, 80) + '...';
+                
+                emailEl.innerHTML = `
+                    <input type="checkbox" class="email-checkbox">
+                    <svg class="email-star ${email.starred ? 'starred' : ''}" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="${email.starred ? 'M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z' : 'M22 9.24l-7.19-.62L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21 12 17.27 18.18 21l-1.63-7.03L22 9.24zM12 15.4l-3.76 2.27 1-4.28-3.32-2.88 4.38-.38L12 6.1l1.71 4.04 4.38.38-3.32 2.88 1 4.28L12 15.4z'}"/>
+                    </svg>
+                    <div class="email-sender">${email.from.split('<')[0].trim()}</div>
+                    <div class="email-content">
+                        <div class="email-subject">
+                            ${email.subject}
+                            ${email.labels.map(label => `<span class="email-label">${label}</span>`).join('')}
+                        </div>
+                        <div class="email-preview">${previewText}</div>
+                    </div>
+                    <div class="email-date">${formatDate(email.date)}</div>
+                `;
+                
+                // Email click handler
+                emailEl.addEventListener('click', (e) => {
+                    if (!e.target.classList.contains('email-checkbox') && !e.target.classList.contains('email-star')) {
+                        showEmailDetail(email.id);
+                    }
+                });
+                
+                // Star toggle
+                const starEl = emailEl.querySelector('.email-star');
+                starEl.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    email.starred = !email.starred;
+                    starEl.classList.toggle('starred');
+                    starEl.innerHTML = `<path d="${email.starred ? 'M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z' : 'M22 9.24l-7.19-.62L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21 12 17.27 18.18 21l-1.63-7.03L22 9.24zM12 15.4l-3.76 2.27 1-4.28-3.32-2.88 4.38-.38L12 6.1l1.71 4.04 4.38.38-3.32 2.88 1 4.28L12 15.4z'}"/>`;
+                });
+                
+                emailListEl.appendChild(emailEl);
+            });
+            
+            // Update inbox count
+            const unreadCount = emails.filter(e => !e.read).length;
+            inboxCountEl.textContent = emails.length;
+            inboxCountEl.style.display = emails.length > 0 ? 'inline-block' : 'none';
+        }
+
+        // Show email detail
+        function showEmailDetail(emailId) {
+            const email = emails.find(e => e.id === emailId);
+            if (!email) return;
+            
+            selectedEmailId = emailId;
+            
+            emailDetailEl.innerHTML = `
+                <div class="email-detail-header">
+                    <h1 class="email-detail-subject">${email.subject}</h1>
+                    <div class="email-detail-info">
+                        <div>
+                            <div class="email-detail-from"><strong>From:</strong> ${email.from}</div>
+                            <div class="email-detail-to"><strong>To:</strong> ${email.to}</div>
+                        </div>
+                        <div class="email-detail-date">${formatDate(email.date)}</div>
+                    </div>
+                </div>
+                <div class="email-detail-body">
+                    ${email.body}
+                </div>
+            `;
+            
+            emailDetailEl.classList.add('visible');
+            
+            // Mark as read
+            if (!email.read) {
+                email.read = true;
+                renderEmailList();
+            }
+            
+            // Scroll to top
+            emailDetailEl.scrollTop = 0;
+            
+            // Update selected state in list
+            document.querySelectorAll('.email-item').forEach(el => {
+                el.classList.toggle('selected', el.dataset.id === emailId.toString());
+            });
+        }
+
+        // Search emails
+        function searchEmails(query) {
+            if (!query.trim()) {
+                renderEmailList(emails);
+                return;
+            }
+            
+            const searchTerm = query.toLowerCase();
+            const filtered = emails.filter(email => 
+                email.subject.toLowerCase().includes(searchTerm) ||
+                email.from.toLowerCase().includes(searchTerm) ||
+                email.body.toLowerCase().includes(searchTerm)
+            );
+            
+            renderEmailList(filtered);
+            
+            // Clear detail view if no email selected from filtered results
+            if (selectedEmailId && !filtered.find(e => e.id === selectedEmailId)) {
+                emailDetailEl.classList.remove('visible');
+                selectedEmailId = null;
+            }
+        }
+
+        // Load sample data
+        function loadSampleData() {
+            emails = [...sampleEmails];
+            selectedEmailId = null;
+            searchInput.value = '';
+            renderEmailList();
+            emailDetailEl.classList.remove('visible');
+            emailDetailEl.innerHTML = `
+                <div class="empty-state">
+                    <svg width="64" height="64" viewBox="0 0 24 24" fill="#dadce0">
+                        <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 14H4V8l8 5 8-5v10zm-8-7L4 6h16l-8 5z"/>
+                    </svg>
+                    <h3>Select an email to view</h3>
+                    <p>Click on any email in the list to see its full content</p>
+                </div>
+            `;
+            
+            // Show notification
+            showNotification('Sample data loaded successfully');
+        }
+
+        // Show notification
+        function showNotification(message) {
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: #202124;
+                color: white;
+                padding: 12px 24px;
+                border-radius: 4px;
+                font-size: 14px;
+                z-index: 1000;
+                box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+                animation: slideIn 0.3s ease;
+            `;
+            
+            // Add animation
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes slideIn {
+                    from { transform: translateX(100%); opacity: 0; }
+                    to { transform: translateX(0); opacity: 1; }
+                }
+                @keyframes slideOut {
+                    from { transform: translateX(0); opacity: 1; }
+                    to { transform: translateX(100%); opacity: 0; }
+                }
+            `;
+            document.head.appendChild(style);
+            
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            // Remove after 3 seconds
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+
+        // Event listeners
+        searchInput.addEventListener('input', (e) => {
+            searchEmails(e.target.value);
+        });
+
+        refreshBtn.addEventListener('click', () => {
+            renderEmailList();
+            showNotification('Inbox refreshed');
+        });
+
+        loadDataBtn.addEventListener('click', loadSampleData);
+
+        // Compose button
+        document.querySelector('.compose-btn').addEventListener('click', () => {
+            showNotification('Compose feature would open here');
+        });
+
+        // Initialize
+        loadSampleData();
+    </script>
+</body>
+</html>
